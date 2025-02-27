@@ -18,7 +18,10 @@ def merge_audio_video(video_file, audio_file, output_file, delete_sources=True):
         if delete_sources:
             os.remove(video_file)
             os.remove(audio_file)
-            print("🗑️ Deleted source files.")
+            print("🗑️  Deleted source files.")
+        else:
+            print("🖇️  Source files retained.")
+            print("WARNING!! Source files will be overwritten if another video is downloaded!")
 
     except ffmpeg.Error as e:
         print("❌ FFmpeg error:", e.stderr.decode())

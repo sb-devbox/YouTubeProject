@@ -9,14 +9,12 @@ from pytubefix import YouTube  # pytubefix used as regular pytube has an error
 DEFAULT_VIDEO_URL = "https://www.youtube.com/shorts/WxF58hUZqX0"
 
 def main():
-
     # -d flag, auto select default video
     if len(sys.argv) > 1 and "-d" in sys.argv:
         url = DEFAULT_VIDEO_URL
         print(f"Using default URL: {url}")
     else:
         url = DEFAULT_VIDEO_URL
-
 
 
     #basic program flow
@@ -41,25 +39,29 @@ def main():
     #confirm & download av_stream
     print(f"\n{title}")
     print_size(selected_streams) 
-    user_input = get_string("Confirm download? (y/n): ").strip().lower()
+    
     file = []
-    if user_input == "y":
-        for stream_type, stream_item in selected_streams.items():
-            stream = selected_streams[stream_type]
-            file_name = stream_type + "." + selected_streams[stream_type].subtype
-            file.append(download_stream(stream, file_name))
-            print(f"✅ Download completed saved as {file_name}.")
-    else:
-        print("❌ Download cancelled.")
-        sys.exit(1)
+    while True:
+        user_input = get_string("Confirm download? (y/n): ").strip().lower() 
+        if user_input == "y":
+            for stream_type, stream_item in selected_streams.items():
+                stream = selected_streams[stream_type]
+                file_name = stream_type + "." + selected_streams[stream_type].subtype
+                file.append(download_stream(stream, file_name))
+                print(f"✅ Download completed saved as {file_name}.")
+            break
+        elif user_input == "n":
+            print("❌ Download cancelled.")
+            sys.exit(1)
 
-    #merge videos via
+    #merge videos via ffmpeg
     if len(file) == 2:
-        merge_audio_video(file[0], file[1], title)
+        delete_flag = '-x' not in sys.argv
+        merge_audio_video(file[0], file[1], title, delete_flag)
     else:
         sys.exit(1)
     
-
+#FUNCTIONS
 #gets streams from YouTube object
 def get_streams(video):
     stream = video.streams
