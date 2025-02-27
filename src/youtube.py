@@ -1,7 +1,6 @@
 import sys
 import os
 from merge import merge_audio_video
-from cs50 import get_int
 from cs50 import get_string
 from pytubefix import YouTube  # pytubefix used as regular pytube has an error
 
@@ -14,7 +13,7 @@ def main():
         url = DEFAULT_VIDEO_URL
         print(f"Using default URL: {url}")
     else:
-        url = DEFAULT_VIDEO_URL
+        url = get_string("Video URL: ")
 
 
     #basic program flow
