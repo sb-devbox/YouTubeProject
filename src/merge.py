@@ -1,7 +1,7 @@
 import ffmpeg
 import os
 
-def merge_audio_video(video_file, audio_file, output_file="output.mp4", delete_sources=False):
+def merge_audio_video(video_file, audio_file, output_file, delete_sources=True):
     try:
         # Separate input calls for video and audio
         video = ffmpeg.input(video_file)  # Video input
@@ -10,12 +10,11 @@ def merge_audio_video(video_file, audio_file, output_file="output.mp4", delete_s
         # Merge video and audio
         (
             ffmpeg
-            .output(video, audio, output_file , vcodec="copy", acodec="aac")  # Corrected order
+            .output(video, audio, output_file+".mp4", vcodec="copy", acodec="aac")  # Corrected order
             .run(overwrite_output=True)
         )
         print(f"✅ Merged successfully: {output_file}")
 
-        # Delete source files if -x flag is present
         if delete_sources:
             os.remove(video_file)
             os.remove(audio_file)

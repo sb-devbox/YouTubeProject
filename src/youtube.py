@@ -20,60 +20,49 @@ def main():
 
 
     #basic program flow
-    streams = get_streams(url)
+    video = YouTube(url)
+    title = video.title
+    streams = get_streams(video)
     print_streams(streams)
 
+
+    #select av_streams for download
     selected_streams= {}
     for stream_type, stream_list in streams.items():
-        selected_streams = get_string(f"{stream_type.capitalize()} stream itag: ")
-        download_list[stream_type] = streams[stream_type].get_by_itag(user_input)
-
-    print("Download Stream?")
-    print(download_list)
+        while True:
+            user_input = int(get_string(f"{stream_type.capitalize()} stream itag: "))
+            if user_input in stream_list.itag_index.keys():
+                break
+            else:
+                print(f"Please enter a valid {stream_type} stream itag")
+        selected_streams[stream_type] = streams[stream_type].get_by_itag(user_input)
 
     
-    download_stream(download_list)
+    #confirm & download av_stream
+    print(f"\n{title}")
+    print_size(selected_streams) 
+    user_input = get_string("Confirm download? (y/n): ").strip().lower()
+    file = []
+    if user_input == "y":
+        for stream_type, stream_item in selected_streams.items():
+            stream = selected_streams[stream_type]
+            file_name = stream_type + "." + selected_streams[stream_type].subtype
+            file.append(download_stream(stream, file_name))
+            print(f"✅ Download completed saved as {file_name}.")
+    else:
+        print("❌ Download cancelled.")
+        sys.exit(1)
 
-    # Download the selected streams
+    #merge videos via
+    if len(file) == 2:
+        merge_audio_video(file[0], file[1], title)
+    else:
+        sys.exit(1)
     
-    #download_stream(video, stream_itags)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #gets streams from YouTube object
-def get_streams(url):
-    stream = YouTube(url).streams
+def get_streams(video):
+    stream = video.streams
     streams = {
         "video":stream.filter(mime_type="video/mp4", only_video=True),
         "audio":stream.filter(mime_type="audio/mp4", only_audio=True)
@@ -87,64 +76,15 @@ def print_streams(streams):
             print(stream)
     #print(f"\nVideo Title: {video.title}")
 
-def download_streams(streams):
+
+def print_size(streams):
     for stream_type, stream_list in streams.items():
-       print(f"{stream_type.capitalize} Filesize: {filesize / 1_000_000_000:.4f} GB") 
-    
-    user_input = get_string("Confirm download? (y/n): ").strip().lower()
-    if user_input == "y":
-
-        video_file = "video.mp4"
-        audio_file = "audio.mp3"
-
-        video_stream.download(filename=video_file)
-        audio_stream.download(filename=audio_file)
-
-        print(f"✅ Download complete! Video saved as '{video_file}', Audio saved as '{audio_file}'")
-
-        # Merge video and audio
-        merge_audio_video(video_file, audio_file, (video.title + ".mp4"), delete_sources=delete_flag)
-    else:
-        print("❌ Download cancelled.")
-        sys.exit(0)
+        print(f"{stream_type.capitalize()} Filesize: {stream_list.filesize / 1_000_000_000:.4f} GB")
 
 
-
-
-
-
-
-
-
-
-
-def download_stream(streams, itag):
-
-    for stream_type, stream_list in streams.items():
-        
-        print(f"{stream_type} Filesize: {stream_list.filesize / 1_000_000_000:.4f} GB")
-
-
-
-    print(f"Audio Filesize: {audio_stream.filesize / 1_000_000_000:.4f} GB")
-
-    # Confirm before downloading
-    user_input = get_string("Confirm download? (y/n): ").strip().lower()
-    if user_input == "y":
-        # Ensure correct file extensions
-        video_file = "video.mp4"
-        audio_file = "audio.mp3"
-
-        video_stream.download(filename=video_file)
-        audio_stream.download(filename=audio_file)
-
-        print(f"✅ Download complete! Video saved as '{video_file}', Audio saved as '{audio_file}'")
-
-        # Merge video and audio
-        merge_audio_video(video_file, audio_file, (video.title + ".mp4"), delete_sources=delete_flag)
-    else:
-        print("❌ Download cancelled.")
-        sys.exit(0)
+def download_stream(stream, file_name):
+    stream.download(filename=file_name)
+    return file_name
 
 if __name__ == "__main__":
     main()
