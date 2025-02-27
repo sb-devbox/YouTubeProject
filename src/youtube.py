@@ -1,7 +1,6 @@
 import sys
 import os
-from merge import merge_audio_video
-from cs50 import get_string
+import ffmpeg
 from pytubefix import YouTube  # pytubefix used as regular pytube has an error
 
 # Default test video
@@ -13,7 +12,7 @@ def main():
         url = DEFAULT_VIDEO_URL
         print(f"Using default URL: {url}")
     else:
-        url = get_string("Video URL: ")
+        url = str(input("Video URL: "))
 
 
     #basic program flow
@@ -27,7 +26,7 @@ def main():
     selected_streams= {}
     for stream_type, stream_list in streams.items():
         while True:
-            user_input = int(get_string(f"{stream_type.capitalize()} stream itag: "))
+            user_input = int(input(f"{stream_type.capitalize()} stream itag: "))
             if user_input in stream_list.itag_index.keys():
                 break
             else:
@@ -41,7 +40,7 @@ def main():
     
     file = []
     while True:
-        user_input = get_string("Confirm download? (y/n): ").strip().lower() 
+        user_input = input("Confirm download? (y/n): ").strip().lower() 
         if user_input == "y":
             for stream_type, stream_item in selected_streams.items():
                 stream = selected_streams[stream_type]
@@ -70,6 +69,7 @@ def get_streams(video):
     }
     return streams
 
+
 def print_streams(streams):
     for stream_type, stream_list in streams.items():
         print(f"\n##### {stream_type.upper()} STREAMS #####")
@@ -86,6 +86,33 @@ def print_size(streams):
 def download_stream(stream, file_name):
     stream.download(filename=file_name)
     return file_name
+
+
+def merge_audio_video(video_file, audio_file, output_file, delete_sources=True):
+    try:
+        # Separate input calls for video and audio
+        video = ffmpeg.input(video_file)  # Video input
+        audio = ffmpeg.input(audio_file)  # Audio input
+
+        # Merge video and audio
+        (
+            ffmpeg
+            .output(video, audio, output_file+".mp4", vcodec="copy", acodec="aac")  # Corrected order
+            .run(overwrite_output=True)
+        )
+        print(f"✅ Merged successfully: {output_file}")
+
+        if delete_sources:
+            os.remove(video_file)
+            os.remove(audio_file)
+            print("🗑️  Deleted source files.")
+        else:
+            print("🖇️  Source files retained.")
+            print("WARNING!! Source files will be overwritten if another video is downloaded!")
+
+    except ffmpeg.Error as e:
+        print("❌ FFmpeg error:", e.stderr.decode())
+
 
 if __name__ == "__main__":
     main()
